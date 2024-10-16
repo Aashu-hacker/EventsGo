@@ -4,7 +4,7 @@ import { createBrowserRouter } from 'react-router-dom';
 import MainRoutes from './MainRoutes';
 import LandingRoutes from './LandingRoutes';
 import LoginRoutes from './AuthenticationRoutes';
-import customerRoutes from './customerRoutes';
+import customerRoutes from './CustomerRoutes';
 
 // ==============================|| ROUTING RENDER ||============================== //
 const router = createBrowserRouter([LandingRoutes,MainRoutes, LoginRoutes, customerRoutes], {
