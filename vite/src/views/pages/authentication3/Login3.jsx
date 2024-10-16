@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 
 // material-ui
-import Divider from '@mui/material/Divider';
+// import Divider from '@mui/material/Divider';
 import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
@@ -15,7 +15,7 @@ import AuthCardWrapper from '../AuthCardWrapper';
 import AuthLogin from '../authentication/auth-forms/AuthLogin'; // For Customer Login Form
 import CustomerLogin from '../authentication/auth-forms/CustomerLogin'; // Create a similar form for vendor login
 import Logo from 'ui-component/Logo';
-import AuthFooter from 'ui-component/cards/AuthFooter';
+// import AuthFooter from 'ui-component/cards/AuthFooter';
 
 // ================================|| AUTH3 - LOGIN ||================================ //
 
@@ -24,6 +24,7 @@ const Login = () => {
 
   // State to track which form to show
   const [loginType, setLoginType] = useState(''); // '' (default), 'vendor', 'customer'
+  localStorage.setItem('loginType', loginType);
 
   return (
     <AuthWrapper1>
@@ -57,7 +58,7 @@ const Login = () => {
                   {/* Login type buttons */}
                   <Grid item xs={12}>
                     <Stack direction="row" spacing={2} justifyContent="center">
-                      <Button
+                    <Button
                         variant={loginType === 'vendor' ? 'contained' : 'outlined'}
                         color="secondary"
                         onClick={() => setLoginType('vendor')}
@@ -71,6 +72,7 @@ const Login = () => {
                       >
                         Customer Login
                       </Button>
+                      
                     </Stack>
                   </Grid>
 
@@ -81,7 +83,7 @@ const Login = () => {
                   {/* Conditionally render the login form based on loginType */}
                   <Grid item xs={12}>
                     {loginType === 'vendor' && <AuthLogin />}
-                    {loginType === 'customer' && <CustomerLogin />} {/* Customer Login Form */}
+                    {loginType === 'customer' && <CustomerLogin />}  {/* Customer Login Form */}
                   </Grid>
                 </Grid>
               </AuthCardWrapper>
@@ -89,7 +91,7 @@ const Login = () => {
           </Grid>
         </Grid>
         <Grid item xs={12} sx={{ m: 3, mt: 1 }}>
-          <AuthFooter />
+          {/* <AuthFooter /> */}
         </Grid>
       </Grid>
     </AuthWrapper1>

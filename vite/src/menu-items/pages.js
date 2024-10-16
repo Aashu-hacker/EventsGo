@@ -1,12 +1,15 @@
 // assets
-import { IconKey } from '@tabler/icons-react';
+import { IconUser } from '@tabler/icons-react';
 
 // constant
 const icons = {
-  IconKey
+  IconUser
 };
 
 // ==============================|| EXTRA PAGES MENU ITEMS ||============================== //
+
+// Get the login type from localStorage
+const loginType = localStorage.getItem('loginType');
 
 const pages = {
   id: 'pages',
@@ -14,29 +17,32 @@ const pages = {
   caption: 'Pages Caption',
   type: 'group',
   children: [
-    {
-      id: 'authentication',
-      title: 'Authentication',
-      type: 'collapse',
-      icon: icons.IconKey,
-
-      children: [
+    ...(loginType !== 'vendor'
+      ? []
+      : [
         {
-          id: 'login3',
-          title: 'Login',
-          type: 'item',
-          url: '/login',
-          target: true
-        },
-        {
-          id: 'register3',
-          title: 'Register',
-          type: 'item',
-          url: '/register',
-          target: true
+          id: 'customer',
+          title: 'Customers',
+          type: 'collapse',
+          icon: icons.IconUser,
+          children: [
+            {
+              id: 'customer-list',
+              title: 'List',
+              type: 'item',
+              url: '/customer-list',
+              // target: true
+            },
+            {
+              id: 'add-customer',
+              title: 'Add Customer',
+              type: 'item',
+              url: '/add-customer',
+              // target: true
+            },
+          ]
         }
-      ]
-    }
+      ])
   ]
 };
 

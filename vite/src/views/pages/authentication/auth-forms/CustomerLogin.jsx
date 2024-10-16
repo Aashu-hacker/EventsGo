@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 
 // material-ui
@@ -45,7 +45,7 @@ const CustomerLogin = ({ ...others }) => {
   const [loginError, setLoginError] = useState(null);
 
   const navigate = useNavigate();
-  
+
   const googleHandler = async () => {
     console.error('Login');
   };
@@ -62,7 +62,7 @@ const CustomerLogin = ({ ...others }) => {
   // Axios login API call
   const loginUser = async (values, setSubmitting) => {
     try {
-      const response = await axios.post(`${REACT_APP_BASE_URL}/vendor/login`, {
+      const response = await axios.post(`${REACT_APP_BASE_URL}/customer/login`, {
         mobile_no: values.mobile,
         password: values.password
       });
@@ -70,10 +70,7 @@ const CustomerLogin = ({ ...others }) => {
       if (response.status === 200) {
         const token = response.data.token;
         localStorage.setItem('authToken', token);
-        localStorage.setItem(
-          "emsLoginData",
-          JSON.stringify(response.data.data)
-        );
+        localStorage.setItem('emsLoginData', JSON.stringify(response.data.data));
         setLoginError(null);
         navigate('/admin');
       }
@@ -254,6 +251,14 @@ const CustomerLogin = ({ ...others }) => {
           </form>
         )}
       </Formik>
+      <br></br>
+      <Grid item xs={12}>
+        <Grid item container direction="column" alignItems="center" xs={12}>
+          <Typography component={Link} to="/register" variant="subtitle1" sx={{ textDecoration: 'none' }}>
+            Don&apos;t have an account?
+          </Typography>
+        </Grid>
+      </Grid>
     </>
   );
 };

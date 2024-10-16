@@ -1,58 +1,41 @@
-import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Grid, TextField, Button, InputAdornment, IconButton, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
-import { useSelector } from 'react-redux';
-
-// material-ui
-import { useTheme } from '@mui/material/styles';
-import useMediaQuery from '@mui/material/useMediaQuery';
-import Box from '@mui/material/Box';
-import Checkbox from '@mui/material/Checkbox';
-import Divider from '@mui/material/Divider';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import OutlinedInput from '@mui/material/OutlinedInput';
-import Typography from '@mui/material/Typography';
-import REACT_APP_BASE_URL from '../../../../utils/api';
-// third party
+import React, { useEffect, useState } from 'react';
+import { Formik } from 'formik';
 import * as Yup from 'yup';
 import axios from 'axios';
-import { Formik } from 'formik';
+import { Grid, TextField, Button, InputAdornment, IconButton, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
+import { Visibility, VisibilityOff } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
-// project imports
-// import Google from 'assets/images/icons/social-google.svg';
-import AnimateButton from 'ui-component/extended/AnimateButton';
-import { strengthColor, strengthIndicator } from 'utils/password-strength';
+import MainCard from 'ui-component/cards/MainCard';
+import REACT_APP_BASE_URL from '../../utils/api';
 
-// assets
-import Visibility from '@mui/icons-material/Visibility';
-import VisibilityOff from '@mui/icons-material/VisibilityOff';
-
-// ===========================|| FIREBASE - REGISTER ||=========================== //
-
-const AuthRegister = ({ ...others }) => {
+const AddCustomer = () => {
   const navigate = useNavigate(); 
-  const theme = useTheme();
-  const matchDownSM = useMediaQuery(theme.breakpoints.down('md'));
-  const customization = useSelector((state) => state.customization);
-  // const [showPassword, setShowPassword] = useState(false);
-  const [checked, setChecked] = useState(true);
   const [vendors, setVendors] = useState([]);
   const [countries, setCountries] = useState([]);
   const [states, setStates] = useState([]);
   const [cities, setCities] = useState([]);
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [passwordStrength, setPasswordStrength] = useState('');
+
+
 
   const token = localStorage.getItem('authToken');
-  const loggedInVendor = JSON.parse(localStorage.getItem('emsLoginData'));
-
+  const loggedInVendor = JSON.parse(localStorage.getItem('emsLoginData')); // Get logged-in vendor details
+  // Fetch vendors, countries, states, cities
   useEffect(() => {
     const fetchVendors = async () => {
-      const response = await axios.get(`${REACT_APP_BASE_URL}/vendor`);
+      const response = await axios.get(`${REACT_APP_BASE_URL}/vendor`, {
+        headers: { Authorization: 'Bearer ' + token }
+      });
       setVendors(response.data.vendor);
     };
 
     const fetchCountries = async () => {
-      const response = await axios.get(`${REACT_APP_BASE_URL}/country`);
+      const response = await axios.get(`${REACT_APP_BASE_URL}/country`, {
+        headers: { Authorization: 'Bearer ' + token }
+      });
       setCountries(response.data.data);
     };
 
@@ -60,52 +43,45 @@ const AuthRegister = ({ ...others }) => {
     fetchCountries();
   }, []);
 
-  const [strength, setStrength] = useState(0);
-  const [level, setLevel] = useState();
-
-  const googleHandler = async () => {
-    console.error('Register');
+    // Password strength calculation (simple example)
+  const calculatePasswordStrength = (password) => {
+    if (password.length > 8 && /[A-Z]/.test(password) && /[0-9]/.test(password)) {
+      return 'Strong';
+    } else if (password.length > 5) {
+      return 'Moderate';
+    } else {
+      return 'Weak';
+    }
   };
-
-  const handleClickShowPassword = () => {
-    setShowPassword(!showPassword);
-  };
-
-  const handleMouseDownPassword = (event) => {
-    event.preventDefault();
-  };
-
-  const changePassword = (value) => {
-    const temp = strengthIndicator(value);
-    setStrength(temp);
-    setLevel(strengthColor(temp));
-  };
-
-  useEffect(() => {
-    changePassword('123456');
-  }, []);
 
   // Fetch states based on selected country
   const fetchStates = async (countryId) => {
-    const response = await axios.get(`${REACT_APP_BASE_URL}/state/${countryId}`);
+    const response = await axios.get(`${REACT_APP_BASE_URL}/state/${countryId}`, {
+      headers: { Authorization: 'Bearer ' + token }
+    });
     setStates(response.data.data);
   };
 
   // Fetch cities based on selected state
   const fetchCities = async (stateId) => {
-    const response = await axios.get(`${REACT_APP_BASE_URL}/city/${stateId}`);
+    const response = await axios.get(`${REACT_APP_BASE_URL}/city/${stateId}`, {
+      headers: { Authorization: 'Bearer ' + token }
+    });
     setCities(response.data.data);
   };
 
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
     setSubmitting(true);
+
     try {
-      const response = await axios.post(`${REACT_APP_BASE_URL}/customer`, values);
+      const response = await axios.post(`${REACT_APP_BASE_URL}/customer/${loggedInVendor?.id}`, values, {
+        headers: { Authorization: 'Bearer ' + token }
+      });
 
       if (response.status === 200 || response.status === 201) {
         Swal.fire('Success', 'Customer added successfully!', 'success');
         resetForm();
-        navigate('/login');
+        navigate('/customer-list'); 
       }
     } catch (error) {
       console.log(error);
@@ -116,58 +92,7 @@ const AuthRegister = ({ ...others }) => {
   };
 
   return (
-    <>
-      <Grid container direction="column" justifyContent="center" spacing={2}>
-        <Grid item xs={12}>
-          {/* <AnimateButton>
-            <Button
-              variant="outlined"
-              fullWidth
-              onClick={googleHandler}
-              size="large"
-              sx={{
-                color: 'grey.700',
-                backgroundColor: theme.palette.grey[50],
-                borderColor: theme.palette.grey[100]
-              }}
-            >
-              <Box sx={{ mr: { xs: 1, sm: 2, width: 20 } }}>
-                <img src={Google} alt="google" width={16} height={16} style={{ marginRight: matchDownSM ? 8 : 16 }} />
-              </Box>
-              Sign up with Google
-            </Button>
-          </AnimateButton> */}
-        </Grid>
-        <Grid item xs={12}>
-          <Box sx={{ alignItems: 'center', display: 'flex' }}>
-            <Divider sx={{ flexGrow: 1 }} orientation="horizontal" />
-            {/* <Button
-              variant="outlined"
-              sx={{
-                cursor: 'unset',
-                m: 2,
-                py: 0.5,
-                px: 7,
-                borderColor: `${theme.palette.grey[100]} !important`,
-                color: `${theme.palette.grey[900]}!important`,
-                fontWeight: 500,
-                borderRadius: `${customization.borderRadius}px`
-              }}
-              disableRipple
-              disabled
-            >
-              OR
-            </Button> */}
-            <Divider sx={{ flexGrow: 1 }} orientation="horizontal" />
-          </Box>
-        </Grid>
-        <Grid item xs={12} container alignItems="center" justifyContent="center">
-          <Box sx={{ mb: 2 }}>
-            <Typography variant="subtitle1">Sign up with Email address</Typography>
-          </Box>
-        </Grid>
-      </Grid>
-
+    <MainCard>
       <Formik
         initialValues={{
           vendor_id: loggedInVendor?.id || '', // Set the logged-in vendor by default
@@ -199,9 +124,9 @@ const AuthRegister = ({ ...others }) => {
       >
         {({ values, errors, touched, handleChange, handleBlur, handleSubmit, setFieldValue, isSubmitting }) => (
           <form onSubmit={handleSubmit}>
-            <Grid container spacing={matchDownSM ? 2 : 1}>
+            <Grid container spacing={2}>
               {/* Vendor Dropdown */}
-              <Grid item xs={12} sm={6}>
+              <Grid item xs={2}>
                 <FormControl fullWidth>
                   <InputLabel>Vendor</InputLabel>
                   <Select
@@ -222,7 +147,7 @@ const AuthRegister = ({ ...others }) => {
               </Grid>
 
               {/* Customer Name */}
-              <Grid item xs={12} sm={6}>
+              <Grid item xs={2}>
                 <TextField
                   fullWidth
                   label="Customer Name"
@@ -234,11 +159,9 @@ const AuthRegister = ({ ...others }) => {
                   helperText={touched.customer_name && errors.customer_name}
                 />
               </Grid>
-            </Grid>
-            <br></br>
-            <Grid container spacing={matchDownSM ? 2 : 1}>
+
               {/* Date of Birth */}
-              <Grid item xs={12} sm={6}>
+              <Grid item xs={2}>
                 <TextField
                   fullWidth
                   label="Date of Birth"
@@ -254,7 +177,7 @@ const AuthRegister = ({ ...others }) => {
               </Grid>
 
               {/* Mobile Number */}
-              <Grid item xs={12} sm={6}>
+              <Grid item xs={2}>
                 <TextField
                   fullWidth
                   label="Mobile Number"
@@ -266,11 +189,9 @@ const AuthRegister = ({ ...others }) => {
                   helperText={touched.mob_no && errors.mob_no}
                 />
               </Grid>
-            </Grid>
-            <br></br>
-            <Grid container spacing={matchDownSM ? 2 : 1}>
+
               {/* Alternate Mobile Number */}
-              <Grid item xs={12} sm={6}>
+              <Grid item xs={2}>
                 <TextField
                   fullWidth
                   label="Alternate Mobile Number"
@@ -284,7 +205,7 @@ const AuthRegister = ({ ...others }) => {
               </Grid>
 
               {/* Pincode */}
-              <Grid item xs={12} sm={6}>
+              <Grid item xs={2}>
                 <TextField
                   fullWidth
                   label="Pincode"
@@ -296,9 +217,7 @@ const AuthRegister = ({ ...others }) => {
                   helperText={touched.pincode && errors.pincode}
                 />
               </Grid>
-            </Grid>
-            <br></br>
-            <Grid container spacing={matchDownSM ? 2 : 1}>
+
               {/* Address */}
               <Grid item xs={6}>
                 <TextField
@@ -314,7 +233,7 @@ const AuthRegister = ({ ...others }) => {
               </Grid>
 
               {/* Country Dropdown */}
-              <Grid item xs={12} sm={6}>
+              <Grid item xs={2}>
                 <FormControl fullWidth>
                   <InputLabel>Country</InputLabel>
                   <Select
@@ -337,11 +256,9 @@ const AuthRegister = ({ ...others }) => {
                   </Select>
                 </FormControl>
               </Grid>
-            </Grid>
-            <br></br>
-            <Grid container spacing={matchDownSM ? 2 : 1}>
+
               {/* State Dropdown */}
-              <Grid item xs={12} sm={6}>
+              <Grid item xs={2}>
                 <FormControl fullWidth>
                   <InputLabel>State</InputLabel>
                   <Select
@@ -366,7 +283,7 @@ const AuthRegister = ({ ...others }) => {
               </Grid>
 
               {/* City Dropdown */}
-              <Grid item xs={12} sm={6}>
+              <Grid item xs={2}>
                 <FormControl fullWidth>
                   <InputLabel>City</InputLabel>
                   <Select
@@ -388,95 +305,72 @@ const AuthRegister = ({ ...others }) => {
                   </Select>
                 </FormControl>
               </Grid>
-            </Grid>
 
-            <FormControl fullWidth error={Boolean(touched.password && errors.password)} sx={{ ...theme.typography.customInput }}>
-              <InputLabel htmlFor="outlined-adornment-password-register">Password</InputLabel>
-              <OutlinedInput
-                id="outlined-adornment-password-register"
+              {/* Password Field */}
+            <Grid item xs={6}>
+              <TextField
+                fullWidth
+                label="Password"
+                name="password"
                 type={showPassword ? 'text' : 'password'}
                 value={values.password}
-                name="password"
-                label="Password"
-                onBlur={handleBlur}
                 onChange={(e) => {
                   handleChange(e);
-                  changePassword(e.target.value);
+                  setPasswordStrength(calculatePasswordStrength(e.target.value));
                 }}
-                endAdornment={
-                  <InputAdornment position="end">
-                    <IconButton
-                      aria-label="toggle password visibility"
-                      onClick={handleClickShowPassword}
-                      onMouseDown={handleMouseDownPassword}
-                      edge="end"
-                      size="large"
-                    >
-                      {showPassword ? <Visibility /> : <VisibilityOff />}
-                    </IconButton>
-                  </InputAdornment>
-                }
-                inputProps={{}}
+                onBlur={handleBlur}
+                error={touched.password && Boolean(errors.password)}
+                helperText={touched.password && errors.password}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton onClick={() => setShowPassword(!showPassword)}>
+                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
               />
-              {touched.password && errors.password && (
-                <FormHelperText error id="standard-weight-helper-text-password-register">
-                  {errors.password}
-                </FormHelperText>
-              )}
-            </FormControl>
+              <p>Password strength: {passwordStrength}</p>
+            </Grid>
 
-            {strength !== 0 && (
-              <FormControl fullWidth>
-                <Box sx={{ mb: 2 }}>
-                  <Grid container spacing={2} alignItems="center">
-                    <Grid item>
-                      <Box style={{ backgroundColor: level?.color }} sx={{ width: 85, height: 8, borderRadius: '7px' }} />
-                    </Grid>
-                    <Grid item>
-                      <Typography variant="subtitle1" fontSize="0.75rem">
-                        {level?.label}
-                      </Typography>
-                    </Grid>
-                  </Grid>
-                </Box>
-              </FormControl>
-            )}
+            {/* Confirm Password Field */}
+            <Grid item xs={6}>
+              <TextField
+                fullWidth
+                label="Confirm Password"
+                name="confirmPassword"
+                type={showConfirmPassword ? 'text' : 'password'}
+                value={values.confirmPassword}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                error={touched.confirmPassword && Boolean(errors.confirmPassword)}
+                helperText={touched.confirmPassword && errors.confirmPassword}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
+                        {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
+              />
+            </Grid>
 
-            <Grid container alignItems="center" justifyContent="space-between">
-              <Grid item>
-                <FormControlLabel
-                  control={
-                    <Checkbox checked={checked} onChange={(event) => setChecked(event.target.checked)} name="checked" color="primary" />
-                  }
-                  label={
-                    <Typography variant="subtitle1">
-                      Agree with &nbsp;
-                      <Typography variant="subtitle1" component={Link} to="#">
-                        Terms & Condition.
-                      </Typography>
-                    </Typography>
-                  }
-                />
+
+              {/* Submit Button */}
+              <Grid item xs={12}>
+                <Button type="submit" variant="contained" color="secondary" disabled={isSubmitting}>
+                  {isSubmitting ? 'Submitting...' : 'Add Customer'}
+                </Button>
               </Grid>
             </Grid>
-            {errors.submit && (
-              <Box sx={{ mt: 3 }}>
-                <FormHelperText error>{errors.submit}</FormHelperText>
-              </Box>
-            )}
-
-            <Box sx={{ mt: 2 }}>
-              <AnimateButton>
-                <Button disableElevation disabled={isSubmitting} fullWidth size="large" type="submit" variant="contained" color="secondary">
-                  Sign up
-                </Button>
-              </AnimateButton>
-            </Box>
           </form>
         )}
       </Formik>
-    </>
+    </MainCard>
   );
 };
 
-export default AuthRegister;
+export default AddCustomer;
