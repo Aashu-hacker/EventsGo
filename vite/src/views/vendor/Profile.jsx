@@ -5,6 +5,9 @@ import PersonIcon from '@mui/icons-material/Person';
 import GroupIcon from '@mui/icons-material/Group';
 import PhotoIcon from '@mui/icons-material/Photo';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
+import AddAPhotoIcon from '@mui/icons-material/AddAPhoto';
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import CardMembershipIcon from '@mui/icons-material/CardMembership';
 import bgProfile from '../../assets/images/img-profile-bg.png';
 // import MoreVertIcon from '@mui/icons-material/MoreVert';
@@ -25,16 +28,17 @@ function ProfilePage() {
   const [servicesData, setServicesData] = useState([]);
   const [servicePackageData, setServicePackageData] = useState([]);
   const [selectedFiles, setSelectedFiles] = useState(null);
+  const [selectedEventId, setSelectedEventId] = useState(null);
   const [tabIndex, setTabIndex] = useState(0);
   const [openCertificateModal, setOpenCertificateModal] = useState(false);
+  const [eventsData, seteventsData] = useState([]);
   // const matchDownSM = false; // Just an example. You can use media queries for responsiveness.
 
   const token = localStorage.getItem('authToken');
 
   // Handle edit button click
   const handleOpenAddCertificate = () => {
-    window.alert('Please enter your new certificate');
-    setOpenEditModal(true); 
+    setOpenCertificateModal(true);
   };
 
   // Handling tab change
@@ -84,13 +88,26 @@ function ProfilePage() {
     }
   };
 
+  const fetchVEvensts = async () => {
+    try {
+      const response = await axios.get(`${REACT_APP_BASE_URL}/event/${JSON.parse(localStorage.getItem('emsLoginData')).id}`, {
+        headers: { Authorization: 'Bearer ' + token }
+      });
+      seteventsData(response.data.data);
+    } catch (error) {
+      console.error('Error fetching Events:', error);
+    }
+  };
+
   // Handle file input change (multiple files)
-  const handleFileChange = (e) => {
-    setSelectedFiles(e.target.files);
+  // Handle file input change and associate with specific event
+  const handleFileChange = (e, eventId) => {
+    setSelectedFiles(e.target.files); // Capture the selected files
+    setSelectedEventId(eventId); // Associate the files with the event's ID
   };
 
   // Handle image upload (POST request)
-  const handleUpload = async () => {
+  const handleUpload = async (eventId) => {
     if (selectedFiles) {
       const formData = new FormData();
 
@@ -102,7 +119,7 @@ function ProfilePage() {
       // Append vendor_id and service_id from localStorage
       const emsLoginData = JSON.parse(localStorage.getItem('emsLoginData'));
       formData.append('vendor_id', emsLoginData.id);
-      formData.append('service_id', emsLoginData.service_id);
+      formData.append('event_id', eventId);
 
       try {
         await axios.post(`${REACT_APP_BASE_URL}/gallery`, formData, {
@@ -121,6 +138,41 @@ function ProfilePage() {
       }
     }
   };
+
+  // Handle image upload for a specific event
+const handleUploadNew = async (eventId) => {
+  if (selectedFiles && selectedEventId === eventId) {
+    const formData = new FormData();
+
+    // Append each selected file to formData
+    Array.from(selectedFiles).forEach((file) => {
+      formData.append('images', file);
+    });
+
+    // Append vendor_id and event_id
+    const emsLoginData = JSON.parse(localStorage.getItem('emsLoginData'));
+    formData.append('vendor_id', emsLoginData.id); // Your vendor_id
+    formData.append('event_id', eventId); // Event ID passed to the function
+
+    try {
+      // Post request to upload images
+      await axios.post(`${REACT_APP_BASE_URL}/gallery`, formData, {
+        headers: {
+          Authorization: 'Bearer ' + token,
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      // Fetch updated gallery or event data after upload
+      fetchGallery(); // Refresh gallery data
+      Swal.fire('Success', 'Images uploaded successfully!', 'success');
+      setSelectedFiles(null); // Reset selected files after upload
+    } catch (error) {
+      console.error('Error uploading images:', error);
+      Swal.fire('Error', 'Error uploading images. Please try again.', 'error');
+    }
+  }
+};
 
   const handleDelete = async (id) => {
     // SweetAlert confirmation popup
@@ -155,6 +207,7 @@ function ProfilePage() {
   // Fetch gallery on component mount
   useEffect(() => {
     fetchGallery();
+    fetchVEvensts();
     fetchServices();
     fetchServicePackage();
   }, []);
@@ -405,49 +458,92 @@ function ProfilePage() {
         </Box>
       )}
       {tabIndex === 2 && (
-        <Box sx={{ p: 4, backgroundColor: '#f9f9f9', borderRadius: '10px', boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.05)' }}>
-          {/* Contact Information Section */}
-          {/* <Box>
+        <Box
+          sx={{
+            p: 4,
+            backgroundColor: '#f9f9f9',
+            borderRadius: '10px',
+            boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.05)'
+          }}
+        >
+          {/* Events Section */}
+          <Box sx={{ mb: 4 }}>
             <Typography variant="h5" sx={{ fontWeight: 500, mb: 2, color: '#333' }}>
-              Contact Information
+              Events
             </Typography>
             <Grid container spacing={2}>
-              <Grid item xs={12} md={6}>
-                <Typography variant="body1" sx={{ fontWeight: 500, color: '#555' }}>
-                  Email:
-                </Typography>
-                <Typography variant="body2" sx={{ color: '#777' }}>
-                  vendor@example.com
-                </Typography>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <Typography variant="body1" sx={{ fontWeight: 500, color: '#555' }}>
-                  Phone:
-                </Typography>
-                <Typography variant="body2" sx={{ color: '#777' }}>
-                  +1 234 567 8900
-                </Typography>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <Typography variant="body1" sx={{ fontWeight: 500, color: '#555' }}>
-                  Location:
-                </Typography>
-                <Typography variant="body2" sx={{ color: '#777' }}>
-                  123 Business Street, Tech City, Country
-                </Typography>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <Typography variant="body1" sx={{ fontWeight: 500, color: '#555' }}>
-                  Website:
-                </Typography>
-                <Typography variant="body2" sx={{ color: '#777' }}>
-                  www.vendorwebsite.com
-                </Typography>
-              </Grid>
+              {eventsData.map((item, index) => (
+                <Grid item xs={12} md={4} key={item.id || index}>
+                  {' '}
+                  {/* Unique 'key' prop */}
+                  <Card
+                    sx={{
+                      p: 3,
+                      boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)',
+                      borderRadius: '10px',
+                      textAlign: 'center',
+                      alignItems: 'center'
+                    }}
+                  >
+                    {/* Profile Avatar for Event */}
+                    <Box
+                      sx={{
+                        backgroundImage: `url(${bgProfile})`, // Background image URL
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        height: 100,
+                        mb: 2
+                      }}
+                    />
+                    <Typography variant="h4" sx={{ fontWeight: 600 }}>
+                      {item.event_name}
+                    </Typography>
+                    <Divider sx={{ my: 2 }} />
+                    <Typography variant="subtitle1" color="textSecondary">
+                      {item.description}
+                    </Typography>
+                    <Divider sx={{ my: 2 }} />
+
+                    {/* File Upload Inputs */}
+                    <div>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        onChange={handleFileChange}
+                        style={{ display: 'none' }}
+                        id={`upload-button-${item.id}`} // Unique ID for each event
+                      />
+                      <label htmlFor={`upload-button-${item.id}`}>
+                        <Button variant="contained" color="primary" component="span">
+                          <AddAPhotoIcon />
+                        </Button>
+                      </label>
+
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={() => handleUpload(item.id)} // Pass event ID for upload
+                        disabled={!selectedFiles}
+                        style={{ marginLeft: '10px' }}
+                      >
+                        <CloudUploadIcon />
+                      </Button>
+
+                      <Button variant="outlined" sx={{ mx: 1, color: '#d32f2f', borderColor: '#d32f2f' }}>
+                        <DeleteOutlineIcon />
+                      </Button>
+                    </div>
+                  </Card>
+                </Grid>
+              ))}
             </Grid>
-          </Box> */}
+          </Box>
         </Box>
       )}
+
       {tabIndex === 3 && (
         <Box sx={{ p: 4, backgroundColor: '#f9f9f9', borderRadius: '10px', boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.05)' }}>
           {/* Certifications Section */}
@@ -508,7 +604,7 @@ function ProfilePage() {
           {/* Gallery Header with Add Photos Button */}
           <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
             <Typography variant="h5">Gallery</Typography>
-            <div>
+            {/* <div>
               <input type="file" accept="image/*" multiple onChange={handleFileChange} style={{ display: 'none' }} id="upload-button" />
               <label htmlFor="upload-button">
                 <Button variant="contained" color="primary" component="span">
@@ -518,7 +614,7 @@ function ProfilePage() {
               <Button variant="contained" color="primary" onClick={handleUpload} disabled={!selectedFiles} style={{ marginLeft: '10px' }}>
                 Upload
               </Button>
-            </div>
+            </div> */}
           </Box>
 
           {/* Gallery Grid */}
