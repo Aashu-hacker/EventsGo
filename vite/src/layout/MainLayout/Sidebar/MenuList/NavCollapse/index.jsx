@@ -32,9 +32,9 @@ const NavCollapse = ({ menu, level }) => {
   const handleClick = () => {
     setOpen(!open);
     setSelected(!selected ? menu.id : null);
-    if (menu?.id !== 'customer') {
-      navigate(menu.children[0]?.url);
-    }
+    // if (menu?.id !== 'customer') {
+    //   navigate(menu.children[0]?.url);
+    // }
   };
 
   const { pathname } = useLocation();

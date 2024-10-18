@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { DataGrid } from '@mui/x-data-grid';
-import { Typography, CircularProgress, Box, IconButton } from '@mui/material';
+import { Typography, CircularProgress, Box, IconButton, Chip } from '@mui/material';
 import axios from 'axios';
 import Swal from 'sweetalert2';
 import EditIcon from '@mui/icons-material/Edit';
@@ -92,7 +92,7 @@ const CustomerList = () => {
 
   // Sample columns for the DataGrid
   const columns = [
-    { field: 'id', headerName: 'ID', width: 100, headerAlign: 'center', align: 'center' },
+    // { field: 'id', headerName: 'ID', width: 100, headerAlign: 'center', align: 'center' },
     { field: 'customer_name', headerName: 'Name', width: 200, headerAlign: 'center', align: 'center' },
     { field: 'address', headerName: 'Address', width: 150, headerAlign: 'center', align: 'center' },
     { field: `country_id`, headerName: 'Country', width: 150, headerAlign: 'center', align: 'center' },
@@ -101,7 +101,13 @@ const CustomerList = () => {
     { field: `pincode`, headerName: 'Pincode', width: 150, headerAlign: 'center', align: 'center' },
     { field: `dob`, headerName: 'DOB', width: 150, headerAlign: 'center', align: 'center' },
     { field: 'mob_no', headerName: 'Phone', width: 150, headerAlign: 'center', align: 'center' },
-    // { field: 'password', headerName: 'Password', width: 150, headerAlign: 'center', align: 'center' },
+    { field: 'is_active', headerName: 'Status', width: 150, headerAlign: 'center', align: 'center',
+      renderCell: () => (
+        <div>
+          <Chip label="Active" color='success' size="small" variant="outlined" clickable>Active</Chip>
+        </div>
+      )
+     },
     {
       field: 'Action',
       headerName: 'Action',

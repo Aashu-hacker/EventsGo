@@ -33,6 +33,7 @@ import MainCard from 'ui-component/cards/MainCard';
 import Transitions from 'ui-component/extended/Transitions';
 import UpgradePlanCard from './UpgradePlanCard';
 // import User1 from 'assets/images/users/user-round.svg';
+import REACT_APP_BASE_URL from '../../../../utils/api';
 
 // assets
 import { IconLogout, IconSearch, IconSettings, IconUser } from '@tabler/icons-react';
@@ -87,7 +88,6 @@ const ProfileSection = () => {
     prevOpen.current = open;
   }, [open]);
 
-  const User1 = JSON.parse(localStorage.getItem('emsLoginData')).logo_image;
   return (
     <>
       <Chip
@@ -112,7 +112,9 @@ const ProfileSection = () => {
         }}
         icon={
           <Avatar
-            src={`http://localhost:7000/${User1}`}
+            src={`${REACT_APP_BASE_URL.replace("/api", "")}/${
+              JSON.parse(localStorage.getItem('emsLoginData')).logo_image
+            }`}
             sx={{
               ...theme.typography.mediumAvatar,
               margin: '8px 0 8px 8px !important',

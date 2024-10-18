@@ -201,7 +201,7 @@ const AuthRegister = ({ ...others }) => {
           <form onSubmit={handleSubmit}>
             <Grid container spacing={matchDownSM ? 2 : 1}>
               {/* Vendor Dropdown */}
-              <Grid item xs={12} sm={6}>
+              {/* <Grid item xs={12} sm={6}>
                 <FormControl fullWidth>
                   <InputLabel>Vendor</InputLabel>
                   <Select
@@ -219,10 +219,10 @@ const AuthRegister = ({ ...others }) => {
                     ))}
                   </Select>
                 </FormControl>
-              </Grid>
+              </Grid> */}
 
               {/* Customer Name */}
-              <Grid item xs={12} sm={6}>
+              <Grid item xs={12} sm={12}>
                 <TextField
                   fullWidth
                   label="Customer Name"
